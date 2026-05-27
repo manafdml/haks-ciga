@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cigarettes Table — DB Test</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    .test-page { padding: 24px 18px 24px; }
+    .test-page h2 { margin: 4px 0 4px; font-size: 20px; }
+    .test-page .muted { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
+    .row-2 { display: grid; grid-template-columns: 1fr 110px; gap: 8px; }
+    .row-2 .input { margin: 0; }
+    .row-2 .btn { margin: 0; padding: 14px 0; }
+    #cig-list li b { color: var(--text); }
+    #cig-list .meta { color: var(--muted); font-size: 11px; }
+    .pill {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+    }
+    .pill.ok { background: rgba(54,211,153,0.15); color: var(--accent); }
+    .pill.warn { background: rgba(239,68,68,0.15); color: var(--danger); }
+  </style>
+</head>
+<body>
+  <div class="phone-frame">
+    <div class="phone-notch"></div>
+    <div class="phone-screen">
+
+      <!-- Sign-in (only shown if no active session) -->
+      <section id="auth-screen" class="screen test-page" style="display:none">
+        <h2>Sign in to test</h2>
+        <p class="muted">Use the same Supabase user you created for the main app.</p>
+        <input id="t-email" class="input" type="email" placeholder="Email" />
+        <input id="t-password" class="input" type="password" placeholder="Password" />
+        <button id="t-signin" class="btn btn-primary btn-big">Sign in</button>
+        <p id="t-error" class="error-msg"></p>
+      </section>
+
+      <!-- Test workspace -->
+      <section id="test-screen" class="screen test-page" style="display:none">
+        <h2>Cigarettes Table</h2>
+        <p class="muted">
+          Status: <span id="t-status" class="pill ok">connected</span>
+          <button id="t-signout" class="icon-btn" title="Sign out" style="float:right">⎋</button>
+        </p>
+
+        <h3 class="section-title">Add a row</h3>
+        <input id="cig-brand" class="input" type="text" placeholder="Brand (e.g. Marlboro)" />
+        <div class="row-2">
+          <input id="cig-qty" class="input" type="number" min="0" placeholder="Quantity" />
+          <button id="cig-add" class="btn btn-primary">Add</button>
+        </div>
+        <p id="cig-add-msg" class="error-msg"></p>
+
+        <h3 class="section-title">
+          All rows
+          <button id="cig-refresh" class="icon-btn" title="Refresh" style="float:right">↻</button>
+        </h3>
+        <ul id="cig-list" class="recent-list">
+          <li style="justify-content:center;color:var(--muted)">Loading…</li>
+        </ul>
+
+        <p class="muted" style="margin-top:18px">
+          Tip: open DevTools console and try
+          <code>await cigarettesAPI.fetchCigarettes()</code>.
+        </p>
+      </section>
+
+      <div id="toast" class="toast"></div>
+      <footer class="credit">Chief Engineer · <b>Mahamood Manaf</b></footer>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/cigarettes.js"></script>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const show = (id) => $(id).style.display = 'block';
+    const hide = (id) => $(id).style.display = 'none';
+
+    function toast(msg, type = 'ok') {
+      const t = $('toast');
+      t.textContent = msg;
+      t.classList.toggle('error', type === 'error');
+      t.classList.add('show');
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => t.classList.remove('show'), 1800);
+    }
+
+    if (!window.cigarettesAPI) {
+      document.body.innerHTML = '<div style="padding:40px;font-family:sans-serif;color:#fff;background:#111;min-height:100vh">' +
+        '<h2>Setup needed</h2>' +
+        '<p>Open <code>js/config.js</code> and paste your Supabase URL + anon key.</p>' +
+        '</div>';
+    } else {
+      const supa = cigarettesAPI.client;
+
+      async function refresh() {
+        const list = $('cig-list');
+        list.innerHTML = '<li style="justify-content:center;color:var(--muted)">Loading…</li>';
+        try {
+          const rows = await cigarettesAPI.fetchCigarettes();
+          if (rows.length === 0) {
+            list.innerHTML = '<li style="justify-content:center;color:var(--muted)">No rows yet</li>';
+            return;
+          }
+          list.innerHTML = '';
+          for (const r of rows) {
+            const li = document.createElement('li');
+            const when = new Date(r.created_at).toLocaleString();
+            li.innerHTML = `
+              <span><b>${r.brand ?? '—'}</b> · qty <b>${r.quantity}</b></span>
+              <span class="meta">#${r.id} · ${when}</span>
+            `;
+            list.appendChild(li);
+          }
+        } catch (e) {
+          list.innerHTML = `<li style="color:var(--danger);justify-content:center">Error: ${e.message}</li>`;
+          $('t-status').textContent = 'error';
+          $('t-status').className = 'pill warn';
+        }
+      }
+
+      async function add() {
+        $('cig-add-msg').textContent = '';
+        const brand = $('cig-brand').value;
+        const qty = $('cig-qty').value;
+        const btn = $('cig-add');
+        btn.disabled = true;
+        try {
+          const row = await cigarettesAPI.addCigarette(brand, qty);
+          $('cig-brand').value = '';
+          $('cig-qty').value = '';
+          toast(`Added "${row.brand}" ✓`);
+          refresh();
+        } catch (e) {
+          $('cig-add-msg').textContent = e.message;
+          toast('Add failed', 'error');
+        } finally {
+          btn.disabled = false;
+        }
+      }
+
+      async function signIn() {
+        $('t-error').textContent = '';
+        const email = $('t-email').value.trim();
+        const password = $('t-password').value;
+        const btn = $('t-signin');
+        btn.disabled = true;
+        btn.textContent = 'Signing in...';
+        const { error } = await supa.auth.signInWithPassword({ email, password });
+        btn.disabled = false;
+        btn.textContent = 'Sign in';
+        if (error) {
+          $('t-error').textContent = error.message;
+          return;
+        }
+        await showWorkspace();
+      }
+
+      async function signOut() {
+        await supa.auth.signOut();
+        hide('test-screen');
+        show('auth-screen');
+      }
+
+      async function showWorkspace() {
+        hide('auth-screen');
+        show('test-screen');
+        refresh();
+      }
+
+      $('t-signin').addEventListener('click', signIn);
+      $('t-password').addEventListener('keydown', e => { if (e.key === 'Enter') signIn(); });
+      $('t-signout').addEventListener('click', signOut);
+      $('cig-add').addEventListener('click', add);
+      $('cig-qty').addEventListener('keydown', e => { if (e.key === 'Enter') add(); });
+      $('cig-refresh').addEventListener('click', refresh);
+
+      (async () => {
+        const { data: { session } } = await supa.auth.getSession();
+        if (session) {
+          await showWorkspace();
+        } else {
+          show('auth-screen');
+        }
+      })();
+    }
+  </script>
+</body>
+</html>

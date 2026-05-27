@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hak's Ciga Co ltd</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="phone-frame">
+    <div class="phone-notch"></div>
+    <div class="phone-screen">
+
+      <!-- LOGIN SCREEN -->
+      <section id="screen-login" class="screen active">
+        <div class="login-wrap">
+          <div class="brand-mark">H</div>
+          <h1 class="welcome">Welcome to<br/>HAK'S CIGA Co LTD</h1>
+          <p class="tag">Sales & Inventory</p>
+
+          <input id="login-username" class="input" type="email" placeholder="Email" autocomplete="email" />
+          <input id="login-password" class="input" type="password" placeholder="Password" autocomplete="current-password" />
+          <button id="btn-login" class="btn btn-primary btn-big">Login</button>
+          <p id="login-error" class="error-msg"></p>
+        </div>
+      </section>
+
+      <!-- DASHBOARD -->
+      <section id="screen-dashboard" class="screen">
+        <header class="topbar">
+          <div>
+            <div class="topbar-title">Hak's Ciga Co</div>
+            <div class="topbar-sub" id="today-label"></div>
+          </div>
+          <button id="btn-logout" class="icon-btn" title="Logout">⎋</button>
+        </header>
+
+        <div class="summary-card">
+          <div class="summary-row">
+            <div>
+              <div class="summary-label">Today's Sales</div>
+              <div class="summary-value" id="today-revenue">GHS 0.00</div>
+            </div>
+            <div class="summary-pl">
+              <div class="summary-label">Profit / Loss</div>
+              <div class="summary-value" id="today-profit">GHS 0.00</div>
+            </div>
+          </div>
+          <div class="summary-row small">
+            <div>Pieces sold today: <b id="today-units">0</b></div>
+            <div>Stock left: <b id="total-stock">0</b> pcs</div>
+          </div>
+        </div>
+
+        <h2 class="section-title">Products</h2>
+        <div class="product-grid" id="product-grid"></div>
+
+        <button id="btn-combined" class="btn btn-secondary btn-big">📊 Combined Report</button>
+      </section>
+
+      <!-- PRODUCT DETAIL -->
+      <section id="screen-product" class="screen">
+        <header class="topbar">
+          <button class="icon-btn" data-back="screen-dashboard">←</button>
+          <div class="topbar-title" id="product-title">Product</div>
+          <span style="width:34px"></span>
+        </header>
+
+        <div class="stat-grid">
+          <div class="stat"><div class="stat-label">Stock (pcs)</div><div class="stat-value" id="p-stock">0</div></div>
+          <div class="stat"><div class="stat-label">Cost / piece</div><div class="stat-value" id="p-cost">GHS 0</div></div>
+          <div class="stat"><div class="stat-label">Sold Today</div><div class="stat-value" id="p-sold-today">0</div></div>
+          <div class="stat" id="p-pl-card"><div class="stat-label">P / L Today</div><div class="stat-value" id="p-pl-today">GHS 0</div></div>
+        </div>
+
+        <h3 class="section-title">Record Day's Sales</h3>
+        <div class="form-inline">
+          <input id="sale-date" class="input" type="date" />
+          <input id="sale-qty" class="input" type="number" min="1" placeholder="Pieces sold" />
+        </div>
+        <button id="btn-record-day" class="btn btn-primary btn-big">Record Sales</button>
+
+        <h3 class="section-title">Add Purchase (Boxes)</h3>
+        <div class="form-inline three">
+          <input id="buy-boxes" class="input" type="number" min="1" placeholder="Boxes" />
+          <input id="buy-cost" class="input" type="number" min="0" step="0.01" placeholder="Cost / box" />
+          <input id="buy-ppb" class="input" type="number" min="1" placeholder="Pcs / box" />
+        </div>
+        <button id="btn-add-purchase" class="btn btn-secondary">Add Purchase</button>
+        <p class="hint-row" id="purchase-hint"></p>
+
+        <h3 class="section-title">Selling Price (per piece)</h3>
+        <div class="inv-row">
+          <input id="price-input" class="input" type="number" min="0" step="0.01" placeholder="GHS per piece" />
+          <button id="btn-save-price" class="btn btn-secondary">Save</button>
+        </div>
+
+        <h3 class="section-title">Daily Sales Records</h3>
+        <ul id="recent-sales" class="recent-list"></ul>
+
+        <button id="btn-reset-prod" class="btn btn-danger">Reset Product Data</button>
+      </section>
+
+      <!-- COMBINED REPORT -->
+      <section id="screen-combined" class="screen">
+        <header class="topbar">
+          <button class="icon-btn" data-back="screen-dashboard">←</button>
+          <div class="topbar-title">Combined Report</div>
+          <span style="width:34px"></span>
+        </header>
+
+        <div class="summary-card">
+          <div class="summary-row">
+            <div>
+              <div class="summary-label">Today Revenue</div>
+              <div class="summary-value" id="c-today-rev">GHS 0</div>
+            </div>
+            <div>
+              <div class="summary-label">Today P/L</div>
+              <div class="summary-value" id="c-today-pl">GHS 0</div>
+            </div>
+          </div>
+          <div class="summary-row">
+            <div>
+              <div class="summary-label">All-time Revenue</div>
+              <div class="summary-value" id="c-all-rev">GHS 0</div>
+            </div>
+            <div>
+              <div class="summary-label">All-time P/L</div>
+              <div class="summary-value" id="c-all-pl">GHS 0</div>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="section-title">By Product</h3>
+        <div id="combined-breakdown"></div>
+      </section>
+
+      <div id="toast" class="toast"></div>
+
+      <footer class="credit">
+        Chief Engineer · <b>Mahamood Manaf</b>
+      </footer>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
